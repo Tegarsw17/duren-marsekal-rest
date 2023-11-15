@@ -1,0 +1,688 @@
+openapi: '3.0.2'
+info:
+  title: Duren Marsekal API
+  version: '1.0'
+  description: Duren Marsekal Restful API
+tags:
+  - name: Plant
+    description: Operations related for Plant
+  - name: Plant Dictionary
+    description: Operations related for Dictionary Plant
+  - name: Inventory
+    description: Operations related for Inventory
+  - name: Treatment
+    description: Operations related for treatment
+  - name: Request Treatment
+    description: Operations related for make request treatment
+  - name: User
+    description: Operations related for user management
+servers:
+  - url: https://localhost:8080/v1
+
+
+components:
+  schemas:
+    response_error:
+      type: object
+      properties:
+        errors:
+          type: boolean
+        message:
+          type: string
+    plant_data:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        longitude:
+          type: string
+        latitude:
+          type: string
+        condition:
+          type: string
+        plant_dict:
+          type: object
+          properties:
+            name:
+              type: string
+            detail:
+              type: string
+            care:
+              type: string
+        images:
+          type: object
+          properties:
+            images_url:
+              type: string
+    dict_plant_data:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        detail:
+          type: string
+        care:
+          type: string
+        images:
+          type: object
+          properties:
+            images_url:
+              type: string
+        
+
+          
+  securitySchemes:
+    api_key:
+      type: apiKey
+      name: X-Api-Key
+      in: header
+
+paths:
+  /dict-plants:
+    post:
+      description: ''
+      security:
+      - api_key: []
+      summary: Create Dictionary Plant
+      tags:
+        - "Plant Dictionary"
+      requestBody:
+        description: Task details
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                detail:
+                  type: string
+                care:
+                  type: string
+      responses:
+        '201':
+          description: Task created successfully
+          content:
+            application/json:
+              schema:
+               type: object
+               properties:
+                 code:
+                  type: string
+                 message:
+                  type: string
+                 data:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+        '400':
+          description: Invalid Input
+          content:
+            application/json:
+              schema:
+               $ref: '#/components/schemas/response_error'
+        '401':
+          description: Unautorized
+          content:
+            application/json:
+              schema:
+               $ref: '#/components/schemas/response_error'
+    get:
+      description: ''
+      summary: Get All Dictionary Plant
+      tags:
+        - "Plant Dictionary"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+               type: object
+               properties:
+                 errors:
+                  type: boolean
+                  default: false
+                 message:
+                  type: string
+                 data:
+                  type: array
+                  items:
+                    anyOf:
+                      - $ref: '#/components/schemas/dict_plant_data'
+                      - $ref: '#/components/schemas/dict_plant_data'
+        '401':
+          description: Unautorized
+          content:
+            application/json:
+              schema:
+               $ref: '#/components/schemas/response_error'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+               $ref: '#/components/schemas/response_error'
+
+                    
+  /dict-plants/{idDictPlant}:
+    get:
+      description: ''
+      summary: Get plant dictionary by idPlant
+      tags:
+        - "Plant Dictionary"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+               type: object
+               properties:
+                 errors:
+                  type: boolean
+                  default: false
+                 message:
+                  type: string
+                 data:
+                    $ref: '#/components/schemas/dict_plant_data'
+        '401':
+          description: Unautorized
+          content:
+            application/json:
+              schema:
+               $ref: '#/components/schemas/response_error'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+               $ref: '#/components/schemas/response_error'
+    put:
+      description: ''
+      summary: Update plant dictionary by idPlant
+      tags:
+        - "Plant Dictionary"
+      requestBody:
+        description: Task details
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                detail:
+                  type: string
+                care:
+                  type: string
+      responses:
+        '200':
+          description: Update successfully
+          content:
+            application/json:
+              schema:
+               type: object
+               properties:
+                 code:
+                  type: string
+                 message:
+                  type: string
+                 data:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+        '400':
+          description: Invalid Input
+          content:
+            application/json:
+              schema:
+               $ref: '#/components/schemas/response_error'
+        '401':
+          description: Unautorized
+          content:
+            application/json:
+              schema:
+               $ref: '#/components/schemas/response_error'
+        '404':
+          description: data not found
+          content:
+            application/json:
+              schema:
+               $ref: '#/components/schemas/response_error'
+    delete:
+      description: ''
+      summary: Delete plant dictionary by idPlant
+      tags:
+        - "Plant Dictionary"
+      responses:
+        '200':
+          description: OK
+  /dict-plants/{idDictPlant}/upload-images:
+    post:
+      description: ''
+      tags:
+        - "Plant Dictionary"
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                fileName:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: OK
+
+  /plants:
+    get:
+      description: ''
+      summary: Get All plant
+      security:
+      - api_key: []
+      tags:
+        - "Plant"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+               type: object
+               properties:
+                 errors:
+                  type: boolean
+                  default: false
+                 message:
+                  type: string
+                 data:
+                  type: array
+                  items:
+                    anyOf:
+                      - $ref: '#/components/schemas/plant_data'
+                      - $ref: '#/components/schemas/plant_data'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response_error'
+        '401':
+          description: Unautorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response_error'
+    post:
+      description: ''
+      summary: Create plant
+      tags:
+        - "Plant"
+      requestBody:
+        description: Task details
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                longitude:
+                  type: string
+                latitude:
+                  type: string
+                dict_plant_id:
+                  type: string
+      responses:
+        '201':
+          description: Plant Created
+          content:
+            application/json:
+              schema:
+               type: object
+               properties:
+                 errors:
+                  type: boolean
+                  default: false
+                 message:
+                  type: string
+                 data:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    name:
+                      type: string
+        '400':
+          description: invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response_error'
+        '401':
+          description: unautorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/response_error'
+  /plants/{idPlant}:
+    get:
+      description: ''
+      summary: Get Plant by id
+      tags:
+        - "Plant"
+      parameters: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+               type: object
+               properties:
+                 errors:
+                  type: boolean
+                  default: false
+                 message:
+                  type: string
+                 data:
+                  $ref: '#/components/schemas/plant_data'
+        '401':
+          description: Unautorized
+          content:
+            application/json:
+              schema:
+               $ref: '#/components/schemas/response_error'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+               $ref: '#/components/schemas/response_error'
+    put:
+      description: ''
+      summary: Edit Plant by Id
+      tags:
+        - "Plant"
+      requestBody:
+        description: Task details
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                longitude:
+                  type: string
+                latitude:
+                  type: string
+                condition:
+                  type: string
+                dict_plant_id:
+                  type: string
+      responses:
+        '200':
+          description: Plant Update
+          content:
+            application/json:
+              schema:
+               type: object
+               properties:
+                 errors:
+                  type: boolean
+                  default: false
+                 message:
+                  type: string
+                 data:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+        '400':
+          description: invalid input
+          content:
+            application/json:
+              schema:
+               $ref: '#/components/schemas/response_error'
+        '401':
+          description: Unautorized
+          content:
+            application/json:
+              schema:
+               $ref: '#/components/schemas/response_error'
+        '404':
+          description: Data not found
+          content:
+            application/json:
+              schema:
+               $ref: '#/components/schemas/response_error'
+    delete:
+      description: ''
+      summary: Delete plant by Id
+      tags:
+        - "Plant"
+      parameters: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: boolean
+                  message:
+                    type: string
+        '401':
+          description: Unautorized
+          content:
+            application/json:
+              schema:
+               $ref: '#/components/schemas/response_error'
+        '404':
+          description: Data not found
+          content:
+            application/json:
+              schema:
+               $ref: '#/components/schemas/response_error'
+  
+  /plants/{idPlant}/upload-images:
+    post:
+      description: ''
+      tags:
+        - "Plant"
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                fileName:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: OK
+  /inventorys:
+    get:
+      description: ''
+      summary: Get All plant
+      security:
+      - api_key: []
+      tags:
+        - "Inventory"
+      responses:
+        '200':
+          description: OK
+    post:
+      description: ''
+      summary: Create plant
+      tags:
+        - "Inventory"
+      responses:
+        '200':
+          description: OK
+  /inventorys/{idInventory}:
+    get:
+      description: ''
+      summary: Get Plant by id
+      tags:
+        - "Inventory"
+      parameters: []
+      responses:
+        '200':
+          description: OK
+    put:
+      description: ''
+      summary: Edit Plant by Id
+      tags:
+        - "Inventory"
+      parameters: []
+      responses:
+        '200':
+          description: OK
+    delete:
+      description: ''
+      summary: Delete plant by Id
+      tags:
+        - "Inventory"
+      parameters: []
+      responses:
+        '200':
+          description: OK
+  
+  /plant/{idPlant}/treatments:
+    get:
+      description: ''
+      summary: Get All plant
+      security:
+      - api_key: []
+      tags:
+        - "Treatment"
+      responses:
+        '200':
+          description: OK
+    post:
+      description: ''
+      summary: Create plant
+      tags:
+        - "Treatment"
+      responses:
+        '200':
+          description: OK
+  /plant/{idPlant}/treatments/{idTreatment}:
+    get:
+      description: ''
+      summary: Get Plant by id
+      tags:
+        - "Treatment"
+      parameters: []
+      responses:
+        '200':
+          description: OK
+    put:
+      description: ''
+      summary: Edit Plant by Id
+      tags:
+        - "Treatment"
+      parameters: []
+      responses:
+        '200':
+          description: OK
+    delete:
+      description: ''
+      summary: Delete plant by Id
+      tags:
+        - "Treatment"
+      parameters: []
+      responses:
+        '200':
+          description: OK
+  /plant/{idPlant}/treatments/{idTreatment}/upload-images:
+    post:
+      description: ''
+      summary: Create plant
+      tags:
+        - "Treatment"
+      responses:
+        '200':
+          description: OK
+  /request-treatments:
+    get:
+      description: ''
+      summary: Get All plant
+      security:
+      - api_key: []
+      tags:
+        - "Request Treatment"
+      responses:
+        '200':
+          description: OK
+    post:
+      description: ''
+      summary: Create plant
+      tags:
+        - "Request Treatment"
+      responses:
+        '200':
+          description: OK
+  /request-treatments/{idRequest}:
+    get:
+      description: ''
+      summary: Get Plant by id
+      tags:
+        - "Request Treatment"
+      parameters: []
+      responses:
+        '200':
+          description: OK
+    put:
+      description: ''
+      summary: Edit Plant by Id
+      tags:
+        - "Request Treatment"
+      parameters: []
+      responses:
+        '200':
+          description: OK
+    delete:
+      description: ''
+      summary: Delete plant by Id
+      tags:
+        - "Request Treatment"
+      parameters: []
+      responses:
+        '200':
+          description: OK
+  
+  /login:
+    post:
+      description: ''
+      tags:
+        - "User"
+      parameters: []
+      responses:
+        '200':
+          description: OK
+  /register:
+    post:
+      description: ''
+      tags:
+        - "User"
+      parameters: []
+      responses:
+        '200':
+          description: OK
+
+
+
