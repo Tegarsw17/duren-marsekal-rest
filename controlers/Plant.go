@@ -7,6 +7,7 @@ import (
 	"rest-duren-marsekal/utils"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -14,11 +15,15 @@ import (
 
 // var urlImage string = "https://res.cloudinary.com/daw1nuqgv/image/upload/v1698663228/"
 
-func GetAllPlant(c *gin.Context) {
-	var model []models.Plant
-	var modelView []models.PlantView
+func init() {
+	validate = validator.New(validator.WithRequiredStructEnabled())
+}
 
-	result := models.DB.Preload("PlantDictionary").Find(&model)
+func GetAllPlant(c *gin.Context) {
+	var datas []models.Plant
+	var dataView []models.PlantView
+
+	result := models.DB.Preload("PlantDictionary").Find(&datas)
 
 	if result.RowsAffected == 0 {
 		c.JSON(http.StatusNotFound, utils.ResponsJson{
@@ -28,28 +33,29 @@ func GetAllPlant(c *gin.Context) {
 		return
 	}
 
-	for _, mod := range model {
-		modelView = append(modelView, models.PlantView{
-			ID:        mod.ID,
-			Name:      mod.Name,
-			Condition: mod.Condition,
-			Longitude: mod.Longitude,
-			Latitude:  mod.Latitude,
+	for _, data := range datas {
+		dataView = append(dataView, models.PlantView{
+			ID:        data.ID,
+			Name:      data.Name,
+			Condition: data.Condition,
+			Longitude: data.Longitude,
+			Latitude:  data.Latitude,
 			PlantDict: models.PlantDictionaryView{
-				ID:       mod.PlantDictionary.ID,
-				Name:     mod.PlantDictionary.Name,
-				Detail:   mod.PlantDictionary.Detail,
-				Care:     mod.PlantDictionary.Care,
-				ImageUrl: urlImage + mod.PlantDictionary.ImageUrl,
+				ID:       data.PlantDictionary.ID,
+				Name:     data.PlantDictionary.Name,
+				Detail:   data.PlantDictionary.Detail,
+				Care:     data.PlantDictionary.Care,
+				Code:     data.PlantDictionary.Code,
+				ImageUrl: urlImage + data.PlantDictionary.ImageUrl,
 			},
-			ImageUrl: urlImage + mod.ImageUrl,
+			ImageUrl: urlImage + data.ImageUrl,
 		})
 	}
 
 	c.JSON(http.StatusOK, utils.ResponsJsonStruct{
 		Error:   false,
 		Message: "All Data Plant",
-		Data:    modelView,
+		Data:    dataView,
 	})
 }
 
@@ -57,21 +63,47 @@ func CreatePlant(c *gin.Context) {
 	var payload models.PlantCreate
 	var data models.Plant
 	var dataPlantDict models.PlantDictionary
+	var count int64
 
 	err := c.ShouldBind(&payload)
 	utils.ErrorNotNill(err)
+
+	err = validate.Struct(payload)
+	if err != nil {
+		var dataError []string
+		for _, err := range err.(validator.ValidationErrors) {
+			dataError = append(dataError, (err.Field() + ":" + err.Tag()))
+		}
+		c.JSON(http.StatusBadRequest, utils.ResponsJsonArray{
+			Error:   true,
+			Message: "Invalid input",
+			Data:    dataError,
+		})
+		return
+	}
 
 	models.DB.First(&dataPlantDict, "id=?", payload.PlantDictionaryID)
 
 	id := uuid.NewV4().String()
 
 	data.ID = id
-	data.Name = dataPlantDict.Name + " 01"
+	data.Name = dataPlantDict.Name + "-" + payload.Code
 	data.Condition = payload.Condition
 	data.Longitude = payload.Longitude
 	data.Latitude = payload.Latitude
 	data.PlantDictionaryID = payload.PlantDictionaryID
 	data.ImageUrl = "duren-marsekal/plant/default"
+
+	models.DB.Model(&data).Where("name = ?", data.Name).Count(&count)
+
+	if count > 0 {
+		c.JSON(http.StatusBadRequest, utils.ResponsJsonString{
+			Error:   true,
+			Message: "Invalid input",
+			Data:    "Code already used",
+		})
+		return
+	}
 
 	result := models.DB.Create(&data)
 
@@ -196,14 +228,17 @@ func UploadImagePlant(c *gin.Context) {
 	file, header, err := c.Request.FormFile("file")
 
 	if err != nil {
-		c.JSON(400, gin.H{"message": err.Error()})
+		c.JSON(http.StatusBadRequest, utils.ResponsJson{
+			Error:   true,
+			Message: err.Error(),
+		})
 		return
 	}
 
 	if file == nil {
 		c.JSON(http.StatusBadRequest, utils.ResponsJson{
 			Error:   true,
-			Message: "Input Invalid",
+			Message: "File not found",
 		})
 		return
 	}
@@ -214,7 +249,10 @@ func UploadImagePlant(c *gin.Context) {
 	pathUrl, err := service.UploadImage(c, header.Filename, file, folderName, codeFolder)
 
 	if err != nil {
-		c.JSON(500, gin.H{"message": err.Error()})
+		c.JSON(http.StatusBadGateway, utils.ResponsJson{
+			Error:   true,
+			Message: err.Error(),
+		})
 		return
 	}
 
