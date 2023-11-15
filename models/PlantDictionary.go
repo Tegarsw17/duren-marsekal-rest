@@ -21,6 +21,7 @@ type PlantDictionaryView struct {
 	Name     string `json:"name"`
 	Detail   string `json:"detail"`
 	Care     string `json:"care"`
+	Code     string `json:"code"`
 	ImageUrl string `json:"image_url"`
 }
 
@@ -28,6 +29,7 @@ type PlantDictionaryCreate struct {
 	Name   string `json:"name" validate:"required"`
 	Detail string `json:"detail" validate:"required"`
 	Care   string `json:"care" validate:"required"`
+	Code   string `json:"code" validate:"required"`
 }
 
 type File struct {

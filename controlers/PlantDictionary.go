@@ -1,7 +1,6 @@
 package controlers
 
 import (
-	"log"
 	"net/http"
 	"rest-duren-marsekal/models"
 	"rest-duren-marsekal/service"
@@ -39,6 +38,7 @@ func GetAllPlantDictionary(c *gin.Context) {
 			Name:     pdx.Name,
 			Detail:   pdx.Detail,
 			Care:     pdx.Care,
+			Code:     pdx.Code,
 			ImageUrl: urlImage + pdx.ImageUrl,
 		})
 
@@ -55,6 +55,7 @@ func GetAllPlantDictionary(c *gin.Context) {
 func CreatePlantDictionary(c *gin.Context) {
 	var payload models.PlantDictionaryCreate
 	var data models.PlantDictionary
+	var count int64
 
 	err := c.ShouldBind(&payload)
 	utils.ErrorNotNill(err)
@@ -73,6 +74,17 @@ func CreatePlantDictionary(c *gin.Context) {
 		return
 	}
 
+	models.DB.Model(&data).Where("name = ?", payload.Name).Count(&count)
+
+	if count > 0 {
+		c.JSON(http.StatusBadRequest, utils.ResponsJsonString{
+			Error:   true,
+			Message: "Invalid input",
+			Data:    "Name already used",
+		})
+		return
+	}
+
 	id := uuid.NewV4().String()
 
 	data.ID = id
@@ -80,13 +92,14 @@ func CreatePlantDictionary(c *gin.Context) {
 	data.Detail = payload.Detail
 	data.Care = payload.Care
 	data.ImageUrl = "duren-marsekal/dict-plant/default"
+	data.Code = payload.Code
 
 	result := models.DB.Create(&data)
 
 	if result.RowsAffected != 0 {
 		c.JSON(http.StatusCreated, utils.ResponsJsonString{
 			Error:   false,
-			Message: "Data already created",
+			Message: "Data created success",
 			Data:    data.ID,
 		})
 		return
@@ -119,6 +132,7 @@ func GetPlantDictionaryById(c *gin.Context) {
 		Name:     data.Name,
 		Detail:   data.Detail,
 		Care:     data.Care,
+		Code:     data.Code,
 		ImageUrl: urlImage + data.ImageUrl,
 	}
 
@@ -141,10 +155,14 @@ func UpdatePlantDictionaryById(c *gin.Context) {
 
 	err = validate.Struct(payload)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, utils.ResponsJsonStruct{
+		var dataError []string
+		for _, err := range err.(validator.ValidationErrors) {
+			dataError = append(dataError, (err.Field() + ":" + err.Tag()))
+		}
+		c.JSON(http.StatusBadRequest, utils.ResponsJsonArray{
 			Error:   true,
 			Message: "Invalid input",
-			Data:    err.Error(),
+			Data:    dataError,
 		})
 		return
 	}
@@ -162,12 +180,14 @@ func UpdatePlantDictionaryById(c *gin.Context) {
 	data.Name = payload.Name
 	data.Detail = payload.Detail
 	data.Care = payload.Care
+	data.Code = payload.Code
 
-	result := models.DB.Save(&data)
+	// result := models.DB.Save(&data)
+	models.DB.Save(&data)
 
-	log.Print(result.Error)
+	// log.Print(result.Error)
 
-	c.JSON(http.StatusNotFound, utils.ResponsJsonString{
+	c.JSON(http.StatusOK, utils.ResponsJsonString{
 		Error:   false,
 		Message: "Data is Updated",
 		Data:    data.ID + " is Updated",
