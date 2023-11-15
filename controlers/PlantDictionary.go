@@ -227,14 +227,17 @@ func UploadImagePlantDictionary(c *gin.Context) {
 	file, header, err := c.Request.FormFile("file")
 
 	if err != nil {
-		c.JSON(400, gin.H{"message": err.Error()})
+		c.JSON(http.StatusBadRequest, utils.ResponsJson{
+			Error:   true,
+			Message: err.Error(),
+		})
 		return
 	}
 
 	if file == nil {
 		c.JSON(http.StatusNotFound, utils.ResponsJson{
 			Error:   true,
-			Message: "file not found",
+			Message: "File not found",
 		})
 		return
 	}
@@ -245,8 +248,12 @@ func UploadImagePlantDictionary(c *gin.Context) {
 	pathUrl, err := service.UploadImage(c, header.Filename, file, folderName, codeFolder)
 
 	if err != nil {
-		c.JSON(500, gin.H{"message": err.Error()})
+		c.JSON(http.StatusBadGateway, utils.ResponsJson{
+			Error:   true,
+			Message: err.Error(),
+		})
 		return
+
 	}
 
 	models.DB.First(&data, "id=?", id_plant_dictionary)
