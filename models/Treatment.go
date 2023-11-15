@@ -37,7 +37,7 @@ type TreatmentPlantView struct {
 	ID            string          `json:"id" gorm:"primaryKey"`
 	Name          string          `json:"name"`
 	Condition     string          `json:"condition"`
-	Longitude     string          `json:"longitude"`
-	Latitude      string          `json:"latitude"`
+	Longitude     float32         `json:"longitude"`
+	Latitude      float32         `json:"latitude"`
 	TreatmentView []TreatmentView `json:"treatment"`
 }
