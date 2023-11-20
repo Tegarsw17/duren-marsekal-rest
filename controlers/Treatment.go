@@ -2,13 +2,11 @@ package controlers
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"rest-duren-marsekal/models"
 	"rest-duren-marsekal/service"
 	"rest-duren-marsekal/utils"
 	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	uuid "github.com/satori/go.uuid"
@@ -21,11 +19,7 @@ func GetTreatmentPlant(c *gin.Context) {
 	graph := c.Query("graph")
 	treatment := c.Query("treatment")
 	id_plant := c.Param("id_plant")
-
-	// queries := c.Request.URL.Query()
-	// log.Println("All Queries:", queries)
-
-	log.Println(treatment)
+	is_done := c.Query("is_done")
 
 	if graph == "true" {
 		query := fmt.Sprintf(`
@@ -39,7 +33,7 @@ func GetTreatmentPlant(c *gin.Context) {
 			COUNT(CASE WHEN type_treatment = 'Bersih Gulma' THEN 1 ELSE NULL END) AS count_bersih_gulma
 		FROM treatments
 		WHERE (type_treatment = 'Pemupukan' OR type_treatment = 'Penyiraman' OR type_treatment = 'Kocor' OR type_treatment = 'Peruning' OR type_treatment = 'Semprot' OR type_treatment = 'Bersih Gulma') 
-			AND plant_id = '%s'
+			AND plant_id = '%s' AND is_done=TRUE
 		GROUP BY DATE_TRUNC('month', date_done)
 		ORDER BY DATE_TRUNC('month', date_done);
 		`, id_plant)
@@ -56,6 +50,14 @@ func GetTreatmentPlant(c *gin.Context) {
 
 		models.DB.Raw(query).Scan(&result)
 
+		if result == nil {
+			c.JSON(http.StatusNotFound, utils.ResponsJson{
+				Error:   true,
+				Message: "Data not found",
+			})
+			return
+		}
+
 		for i := range result {
 			result[i].Month = strings.TrimSpace(result[i].Month)
 		}
@@ -68,13 +70,26 @@ func GetTreatmentPlant(c *gin.Context) {
 		return
 	}
 
+	query := models.DB.Model(&datas).Where("id = ?", id_plant)
+
 	if treatment != "" {
-		models.DB.Preload("PlantDictionary").Preload("Treatment", "type_treatment=?", treatment).Find(&datas, "id=?", id_plant)
+		query = query.Preload("PlantDictionary").Preload("Treatment", "type_treatment=?", treatment)
 	} else {
-		models.DB.Preload("PlantDictionary").Preload("Treatment").Find(&datas, "id=?", id_plant)
+		query = query.Preload("PlantDictionary").Preload("Treatment")
 	}
 
+	if is_done == "false" {
+		if treatment != "" {
+			query = query.Preload("Treatment", "is_done = ? AND type_treatment = ?", false, treatment)
+		} else {
+			query = query.Preload("PlantDictionary").Preload("Treatment", "is_done=?", false)
+		}
+	}
+
+	query.Find(&datas)
+
 	for _, dts := range datas.Treatment {
+
 		dt = append(dt, models.TreatmentView{
 			ID:            dts.ID,
 			TypeTreatment: dts.TypeTreatment,
@@ -87,6 +102,14 @@ func GetTreatmentPlant(c *gin.Context) {
 		})
 	}
 
+	if dt == nil {
+		c.JSON(http.StatusNotFound, utils.ResponsJson{
+			Error:   true,
+			Message: "Data not found",
+		})
+		return
+	}
+
 	dataView := models.TreatmentPlantView{
 		ID:            datas.ID,
 		Name:          datas.Name,
@@ -95,10 +118,10 @@ func GetTreatmentPlant(c *gin.Context) {
 		Latitude:      datas.Latitude,
 		TreatmentView: dt,
 	}
-	log.Print(graph)
+
 	c.JSON(http.StatusOK, utils.ResponsJsonStruct{
-		Error:   true,
-		Message: "All treatment from " + datas.ID,
+		Error:   false,
+		Message: "All treatment from " + datas.Name,
 		Data:    dataView,
 	})
 }
@@ -107,6 +130,8 @@ func CreateTreatmentPlant(c *gin.Context) {
 	var payload models.TreatmentCreate
 	var data models.Treatment
 	id_plant := c.Param("id_plant")
+	request_treatment := c.Query("req_treat")
+	// log.Print(request_treatment)
 
 	err := c.ShouldBind(&payload)
 	utils.ErrorNotNill(err)
@@ -117,10 +142,29 @@ func CreateTreatmentPlant(c *gin.Context) {
 	data.TypeTreatment = payload.TypeTreatment
 	data.Detail = payload.Detail
 	data.PlantId = id_plant
-	data.IsDone = false
-	data.DateDone = time.Date(2023, time.March, 12, 12, 30, 0, 0, time.Local)
-	data.DueDate = time.Now()
 	data.ImageUrl = "duren-marsekal/treatment/default"
+
+	if request_treatment == "true" {
+		data.IsDone = false
+		data.DueDate = utils.GenerateDate(payload.DueDate)
+		data.DateDone = nil
+
+		result := models.DB.Create(&data)
+
+		if result.RowsAffected != 0 {
+			c.JSON(http.StatusCreated, utils.ResponsJsonString{
+				Error:   false,
+				Message: "Data success created",
+				Data:    data.ID,
+			})
+			return
+		}
+		return
+	}
+
+	data.IsDone = true
+	data.DateDone = utils.GenerateDate(payload.DateDone)
+	data.DueDate = nil
 
 	result := models.DB.Create(&data)
 
@@ -155,6 +199,7 @@ func GetTreatmentPlantById(c *gin.Context) {
 		return
 	}
 
+	fmt.Print(data.Treatment)
 	for _, dts := range data.Treatment {
 		dt = append(dt, models.TreatmentView{
 			ID:            dts.ID,
@@ -168,9 +213,17 @@ func GetTreatmentPlantById(c *gin.Context) {
 		})
 	}
 
+	if dt == nil {
+		c.JSON(http.StatusNotFound, utils.ResponsJson{
+			Error:   true,
+			Message: "Data not found",
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, utils.ResponsJsonStruct{
-		Error:   true,
-		Message: "Success Bro",
+		Error:   false,
+		Message: "Data found",
 		Data:    dt,
 	})
 
@@ -197,7 +250,7 @@ func UpdateTreatmentPlantById(c *gin.Context) {
 	}
 
 	data.IsDone = payload.IsDone
-	data.DueDate = payload.DueDate
+	data.DueDate = utils.GenerateDate(payload.DateDone)
 	data.Detail = payload.Detail
 	data.TypeTreatment = payload.TypeTreatment
 

@@ -130,6 +130,7 @@ func SeederPlant(db *gorm.DB) {
 }
 
 func SeederTreatment(db *gorm.DB) {
+	currentTime := time.Now()
 	data := []Treatment{
 		{
 			ID:            "1",
@@ -137,8 +138,8 @@ func SeederTreatment(db *gorm.DB) {
 			Detail:        "pemupukan dilakukan dengan NPK",
 			PlantId:       "d0582cb2-01ca-4ad0-ba78-eff56521689d",
 			IsDone:        true,
-			DateDone:      time.Now(),
-			DueDate:       time.Now(),
+			DateDone:      &currentTime,
+			DueDate:       &currentTime,
 			ImageUrl:      "duren-marsekal/treatment/default",
 			CreatedAt:     time.Now(),
 			UpdatedAt:     time.Now(),
@@ -149,8 +150,8 @@ func SeederTreatment(db *gorm.DB) {
 			Detail:        "pemupukan dilakukan dengan NPK",
 			PlantId:       "d0582cb2-01ca-4ad0-ba78-eff56521689d",
 			IsDone:        false,
-			DateDone:      time.Now(),
-			DueDate:       time.Now(),
+			DateDone:      &currentTime,
+			DueDate:       &currentTime,
 			ImageUrl:      "duren-marsekal/treatment/default",
 			CreatedAt:     time.Now(),
 			UpdatedAt:     time.Now(),
@@ -161,8 +162,8 @@ func SeederTreatment(db *gorm.DB) {
 			Detail:        "peruning pada cabang bawah",
 			PlantId:       "d0582cb2-01ca-4ad0-ba78-eff56521689d",
 			IsDone:        true,
-			DateDone:      time.Now(),
-			DueDate:       time.Now(),
+			DateDone:      &currentTime,
+			DueDate:       &currentTime,
 			ImageUrl:      "duren-marsekal/treatment/default",
 			CreatedAt:     time.Now(),
 			UpdatedAt:     time.Now(),
