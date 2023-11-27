@@ -21,12 +21,16 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: 1.21.4  # Use the Go version you need
-
-    - name: Build and Deploy
-      run: |
-        # Replace these commands with your build and deployment steps
-        cd /var/www/api-duren/html
-        git pull origin main  # Pull the latest code from your GitHub repository
-        go build .  # Build your Go application
-        # Restart your application
-        service goweb restart
+        
+    - name: Deploy to Production
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.YOUR_SSH_HOST }}
+        username: ${{ secrets.YOUR_SSH_USERNAME }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          # Replace with your deployment script or commands here
+          cd /var/www/api-duren/html
+          git pull origin main
+          go build .
+          service goweb restart  # Restart your application
