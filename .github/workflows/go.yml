@@ -29,6 +29,7 @@ jobs:
         username: ${{ secrets.SSH_USERNAME }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
+          sudo su
           # Replace with your deployment script or commands here
           cd /var/www/api-duren/html
           git pull origin main
