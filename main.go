@@ -11,6 +11,7 @@ import (
 )
 
 func main() {
+	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
 	models.SetDB()
 	utils.InitCloudinary()
