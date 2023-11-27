@@ -26,7 +26,7 @@ func main() {
 	r.GET("/", func(c *gin.Context) {
 		c.JSON(http.StatusOK, utils.ResponsJson{
 			Error:   false,
-			Message: "Welcome to Duren Marsekal API this is provide for handle management in the garden of duria",
+			Message: "Welcome to Duren Marsekal API this is provide for handle management in the garden of durian",
 		})
 	})
 
