@@ -1,0 +1,32 @@
+# This workflow will build a golang project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
+
+name: Go CI/CD Pipeline
+
+on:
+  push:
+    branches:
+    - main
+
+jobs:
+
+  build-and-deploy:
+    runs-on: ubuntu-22.04  # Specify Ubuntu 22.04 LTS
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.21.4  # Use the Go version you need
+
+    - name: Build and Deploy
+      run: |
+        # Replace these commands with your build and deployment steps
+        cd /var/www/api-duren/html
+        git pull origin main  # Pull the latest code from your GitHub repository
+        go build .  # Build your Go application
+        # Restart your application
+        service goweb restart
