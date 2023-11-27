@@ -30,7 +30,7 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
           # Replace with your deployment script or commands here
-          sudo cd /var/www/api-duren/html
+          cd /var/www/api-duren/html
           sudo git pull origin main
           sudo go mod vendor
           sudo go build .
