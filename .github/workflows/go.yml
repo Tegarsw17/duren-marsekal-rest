@@ -29,10 +29,9 @@ jobs:
         username: ${{ secrets.SSH_USERNAME }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
-          sudo su
           # Replace with your deployment script or commands here
-          cd /var/www/api-duren/html
-          git pull origin main
-          go mod vendor
-          go build .
-          service goweb restart  # Restart your application
+          sudo cd /var/www/api-duren/html
+          sudo git pull origin main
+          sudo go mod vendor
+          sudo go build .
+          sudo service goweb restart  # Restart your application
