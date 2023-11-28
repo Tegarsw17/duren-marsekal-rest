@@ -10,7 +10,6 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 
-	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -19,8 +18,8 @@ import (
 var DB *gorm.DB
 
 func SetDB() {
-	err := godotenv.Load(".env")
-	utils.ErrorNotNill(err)
+	// err := godotenv.Load(".env")
+	// utils.ErrorNotNill(err)
 	conn := os.Getenv("DB_URL")
 
 	db, err := gorm.Open(postgres.Open(conn), &gorm.Config{})
