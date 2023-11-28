@@ -9,10 +9,7 @@ import (
 var CloudinaryClient *cloudinary.Cloudinary
 
 func InitCloudinary() {
-	// Load your Cloudinary API credentials from a configuration file or environment variables.
-	// config := config.LoadConfig() // You should have a function or package to load your configuration.
-	// err := godotenv.Load(".env")
-	// ErrorNotNill(err)
+
 	cloudinaryURL := os.Getenv("CLOUDINARY_URL")
 
 	client, err := cloudinary.NewFromURL(cloudinaryURL)

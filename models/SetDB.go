@@ -18,8 +18,7 @@ import (
 var DB *gorm.DB
 
 func SetDB() {
-	// err := godotenv.Load(".env")
-	// utils.ErrorNotNill(err)
+
 	conn := os.Getenv("DB_URL")
 
 	db, err := gorm.Open(postgres.Open(conn), &gorm.Config{})
