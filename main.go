@@ -19,7 +19,7 @@ func main() {
 	config := cors.DefaultConfig()
 	config.AllowAllOrigins = true // Change this to the origin(s) you want to allow
 	config.AllowMethods = []string{"GET", "POST", "PUT", "DELETE"}
-	config.AllowHeaders = []string{"origin"}
+	config.AllowHeaders = []string{"origin","Content-Type"}
 	config.AllowCredentials = true
 	r.Use(cors.New(config))
 
