@@ -42,3 +42,12 @@ type TreatmentPlantView struct {
 	Latitude      float32         `json:"latitude"`
 	TreatmentView []TreatmentView `json:"treatment"`
 }
+
+type AllTreatmentPlantView struct {
+	ID            string     `json:"id"`
+	Name          string     `json:"name"`
+	TypeTreatment string     `json:"type_treatment"`
+	DueDate       *time.Time `json:"due_date,omitempty"`
+	DateDone      *time.Time `json:"DateDone,omitempty"`
+	Detail        string     `json:"detail"`
+}

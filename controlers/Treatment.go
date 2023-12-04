@@ -12,6 +12,37 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
+func GetAllTreatmentPlant(c *gin.Context) {
+	var result []models.AllTreatmentPlantView
+
+	res := models.DB.Table("plants").
+		Select("plants.id, plants.name, treatments.type_treatment, treatments.due_date, treatments.date_done, treatments.detail").
+		Joins("LEFT JOIN treatments ON plants.id = treatments.plant_id").
+		Where("treatments.is_done = ?", false).
+		Find(&result)
+	if res.RowsAffected == 0 {
+		c.JSON(http.StatusNotFound, utils.ResponsJson{
+			Error:   true,
+			Message: "Data Not Found",
+		})
+		return
+	}
+	// log.Print(res.Ro)
+	// for _, data := range datas {
+	// 	dataView = append(dataView, models.TreatmentPlantView{
+	// 		ID:            data.ID,
+	// 		Name:          data.Name,
+	// 		TreatmentView: []models.TreatmentView{},
+	// 	})
+	// }
+
+	c.JSON(http.StatusOK, utils.ResponsJsonStruct{
+		Error:   false,
+		Message: "All Data Plant",
+		Data:    result,
+	})
+}
+
 func GetTreatmentPlant(c *gin.Context) {
 	var dt []models.TreatmentView
 	var datas models.Plant

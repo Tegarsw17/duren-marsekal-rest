@@ -13,4 +13,6 @@ func TreatmentRouter(r *gin.Engine) {
 	r.PUT("/plant/:id_plant/treatment/:id_treatment", controlers.UpdateTreatmentPlantById)
 	r.DELETE("/plant/:id_plant/treatment/:id_treatment", controlers.DeleteTreatmentPlantById)
 	r.POST("/plant/:id_plant/treatment/:id_treatment", controlers.UploadImageTreatment)
+
+	r.GET("/treatment", controlers.GetAllTreatmentPlant)
 }
